@@ -8,6 +8,7 @@ import com.tz.commonutils.R;
 import com.tz.eduservice.entity.EduTeacher;
 import com.tz.eduservice.entity.vo.TeacherQuery;
 import com.tz.eduservice.service.EduTeacherService;
+import com.tz.servicebase.exceptionhandler.MyException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
@@ -32,6 +33,7 @@ import java.util.Map;
 @Api("Teacher Manager")
 @RestController
 @RequestMapping("/eduservice/teacher")
+@CrossOrigin
 public class EduTeacherController {
     @Autowired
     EduTeacherService eduTeacherService;
@@ -61,6 +63,11 @@ public class EduTeacherController {
     @GetMapping("pageTeacher/{current}/{size}")
     public R pageTeacherList(@PathVariable("current") Long current,
                              @PathVariable("size") Long size){
+//        try {
+//            Integer i=10/0;
+//        }catch (Exception e){
+//            throw new MyException(20001,"执行自定义异常处理，不能除以0");
+//        }
         Page<EduTeacher> page =new Page<>(current,size);
         eduTeacherService.page(page,null);
         long total = page.getTotal();
@@ -94,10 +101,38 @@ public class EduTeacherController {
         if (!StringUtils.isEmpty(end)){
             wrapper.le("gmt_create",end);
         }
+        wrapper.orderByDesc("gmt_create");
         eduTeacherService.page(teacherPage, wrapper);
         long total = teacherPage.getTotal();
         List<EduTeacher> records = teacherPage.getRecords();
         return R.ok().data("total",total).data("rows",records);
+    }
+
+    @PostMapping("addTeacher")
+    public R addTeacher(@RequestBody EduTeacher eduTeacher){
+        boolean save = eduTeacherService.save(eduTeacher);
+        if (save){
+            return R.ok();
+        } else {
+            return R.error();
+        }
+    }
+
+    @GetMapping("getTeacher/{id}")
+    public R getTeacher(@PathVariable("id") String id){
+        EduTeacher eduTeacher = eduTeacherService.getById(id);
+        return R.ok().data("teacher",eduTeacher);
+    }
+
+    @PostMapping("updateTeacher")
+    public R updateTeacher(@RequestBody EduTeacher eduTeacher){
+        boolean update = eduTeacherService.updateById(eduTeacher);
+        if (update){
+            return R.ok();
+        }else {
+            return R.error();
+        }
+
     }
 }
 
